@@ -1,48 +1,19 @@
-node_modules
+# Dependencies and caches
+node_modules/
+.pnpm-store/
+.conda/
+
+# Build outputs
 dist/
-.artifacts/
-*.log
-.DS_Store
 *.tsbuildinfo
-# packages/*/node_modules/
-packages/*/dist/
-packages/*/dist-chrome/
-packages/*/dist-firefox/
-packages/ai/src/providers/data/
-packages/ai/src/providers/.model-generation-*/
-*.cpuprofile
 
-# Environment
+# Secrets and local environment
 .env
+.env.*
+!.env.example
 
-# Editor files
-.vscode/
-.zed/
-.idea/
-.claude/
-*.swp
-*.swo
-*~
+# Generated upstream model data
+packages/ai/src/providers/data/
 
-# Package specific
-.npm/
-coverage/
-.nyc_output/
-.pi_config/
-tui-debug.log
-compaction-results/
-.opencode/
-syntax.jsonl
-out.jsonl
-pi-*.html
-out.html
-packages/coding-agent/binaries/
-packages/env/bin/
-packages/env/daemon/target/
-todo.md
-plans/
-.pi/hf-sessions/
-.pi/hf-sessions-backup/
-.pi/settings.json
-collect.sh
-packages/agent/docs/extensions/pi-server-artifact/index.md
+# OS metadata
+.DS_Store

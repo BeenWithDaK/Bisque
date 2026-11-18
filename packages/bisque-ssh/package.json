@@ -1,0 +1,25 @@
+{
+	"name": "@earendil-works/bisque-ssh",
+	"private": true,
+	"version": "0.1.0",
+	"description": "Dev/test-only SSH remote tool routing extension for Bisque (excluded from release builds)",
+	"type": "module",
+	"main": "src/ssh.ts",
+	"exports": {
+		".": "./src/ssh.ts"
+	},
+	"engines": {
+		"node": ">=22.19.0"
+	},
+	"scripts": {
+		"test": "vitest --run"
+	},
+	"dependencies": {
+		"@earendil-works/pi-ai": "workspace:*",
+		"@earendil-works/pi-coding-agent": "workspace:*"
+	},
+	"devDependencies": {
+		"typescript": "7.0.2",
+		"vitest": "4.1.12"
+	}
+}

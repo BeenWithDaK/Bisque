@@ -1,0 +1,17 @@
+packages:
+  - 'packages/*'
+  - 'apps/*'
+  - 'packages/chord/test/examples/61-tutorial'
+  - 'packages/coding-agent/examples/extensions/with-deps'
+  - 'packages/coding-agent/examples/extensions/custom-provider-anthropic'
+  - 'packages/coding-agent/examples/extensions/gondolin'
+shamefullyHoist: true
+allowBuilds:
+  '@google/genai': set this to true or false
+  canvas: set this to true or false
+  cpu-features: set this to true or false
+  esbuild: set this to true or false
+  protobufjs: set this to true or false
+  sharp: set this to true or false
+  ssh2: set this to true or false
+  workerd: set this to true or false
