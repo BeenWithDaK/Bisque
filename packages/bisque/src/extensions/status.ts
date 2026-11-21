@@ -10,6 +10,7 @@ import type {
 	SessionStartEvent,
 	TurnEndEvent,
 } from "@earendil-works/pi-coding-agent";
+import { ansi256, BISQUE_COLORS } from "../brand.ts";
 import { readJson, writeJson } from "../storage.ts";
 import { getConfirmMode } from "./permission.ts";
 
@@ -161,12 +162,16 @@ export function formatContextRemaining(usage: ContextUsage | undefined): string 
 		usage.percent !== null
 			? Math.max(0, Math.round(100 - usage.percent))
 			: Math.max(0, Math.round((remaining / usage.contextWindow) * 100));
-	return `Context remaining: ${remaining.toLocaleString()} tokens (${pct}%)`;
+	return `Context: ${pct}% left`;
 }
 
 export function formatUsageRemaining(now = Date.now()): string {
 	const snap = getUsageSnapshot(now);
-	const base = `API usage: 5h ${snap.fiveHourRemainingPct}% (${snap.fiveHourRemaining.toLocaleString()} left) · 7d ${snap.weeklyRemainingPct}%`;
+	const meter = (pct: number): string => {
+		const filled = Math.round(pct / 10);
+		return `[${"▓".repeat(filled)}${"░".repeat(10 - filled)}]`;
+	};
+	const base = `5h ${meter(snap.fiveHourRemainingPct)} ${snap.fiveHourRemainingPct}% · 7d ${meter(snap.weeklyRemainingPct)} ${snap.weeklyRemainingPct}%`;
 	if (snap.providerRemainingPct !== null) {
 		return `${base} · provider ${snap.providerRemainingPct}%`;
 	}
@@ -176,7 +181,11 @@ export function formatUsageRemaining(now = Date.now()): string {
 export function renderStatusBar(ctx: ExtensionContext, now = Date.now()): string[] {
 	const mode = getConfirmMode();
 	const contextUsage = ctx.getContextUsage();
-	return [`Confirm: ${mode}  |  ${formatContextRemaining(contextUsage)}  |  ${formatUsageRemaining(now)}`];
+	const modeColor =
+		mode === "Read" ? BISQUE_COLORS.sage : mode === "Manual approve" ? BISQUE_COLORS.amber : BISQUE_COLORS.tomato;
+	return [
+		`${ansi256(modeColor, mode)}  |  ${ansi256(BISQUE_COLORS.cream, formatContextRemaining(contextUsage))}  |  ${formatUsageRemaining(now)}`,
+	];
 }
 
 export function refreshStatusBar(ctx: ExtensionContext): void {

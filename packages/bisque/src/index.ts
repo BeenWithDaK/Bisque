@@ -5,6 +5,7 @@ import { type InlineExtension, type MainOptions, main } from "@earendil-works/pi
 import { loadDotEnv } from "./env.ts";
 import { bisqueExtensions } from "./extensions/index.ts";
 
+export { ansi256, BISQUE_COLORS } from "./brand.ts";
 export { loadDotEnv, parseDotEnv } from "./env.ts";
 export { commandsExtension } from "./extensions/commands.ts";
 export { configToolsExtension, isRestrictedSetting } from "./extensions/config-tools.ts";
@@ -89,7 +90,16 @@ export {
 	saveModelCatalog,
 	writeManifest,
 } from "./models/storage.ts";
-export { BISQUE_PROMPTS_DIR, BISQUE_SKILLS_DIR, renderBisqueHeaderLines, shellExtension } from "./shell.ts";
+export {
+	BISQUE_PROMPTS_DIR,
+	BISQUE_SKILLS_DIR,
+	BISQUE_VERSION,
+	BisqueEditor,
+	getBisquePromptPrefix,
+	renderBisqueHeaderLines,
+	renderBisqueSplash,
+	shellExtension,
+} from "./shell.ts";
 export { ensureBisqueDir, getBisqueDir, readJson, writeJson } from "./storage.ts";
 
 export interface RunBisqueOptions {

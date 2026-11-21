@@ -32,6 +32,7 @@ import {
 	STATUS_WIDGET_KEY,
 	setUsageLimits,
 } from "../src/extensions/status.ts";
+import { getBisquePromptPrefix, renderBisqueSplash } from "../src/shell.ts";
 
 interface WidgetCall {
 	content: unknown;
@@ -131,21 +132,27 @@ describe("Bisque vertical slice", () => {
 
 		expect(titleSet()).toBe("Bisque");
 		expect(customHeaderInstalled()).toBe(true);
+		const splash = renderBisqueSplash("Read", 2);
+		expect(splash).toContain("  Comfort food for your computer.");
+		expect(splash).toContain("  bisque v0.1.0 · Read · 2 folders granted");
+		expect(getBisquePromptPrefix()).toMatch(/bisque.*(?:❯|>)/);
 		expect(widgets.get(GOAL_WIDGET_KEY)?.content).toBeUndefined();
 
 		const initialStatus = widgets.get(STATUS_WIDGET_KEY);
 		expect(initialStatus?.options?.placement).toBe("belowEditor");
-		expect(initialStatus?.content).toEqual([
-			"Confirm: Manual approve  |  Context remaining: 200,000 tokens (100%)  |  API usage: 5h 100% (500,000 left) · 7d 100%",
-		]);
+		const initialStatusLines = initialStatus?.content as string[];
+		expect(initialStatusLines[0]).toContain("Manual approve");
+		expect(initialStatusLines[0]).toContain("Context: 100% left");
+		expect(initialStatusLines[0]).toContain("5h");
+		expect(initialStatusLines[0]).toContain("7d");
 
 		await harness.session.prompt("/goal Ship Milestone 1.1");
 
 		const goalWidget = widgets.get(GOAL_WIDGET_KEY);
 		expect(goalWidget?.options?.placement).toBe("aboveEditor");
 		const goalLines = goalWidget?.content as string[];
-		expect(goalLines[0]).toBe("Goal: Ship Milestone 1.1");
-		expect(goalLines[1]).toMatch(/^Set /);
+		expect(goalLines[0]).toContain("Working on: Ship Milestone 1.1");
+		expect(goalLines[1]).toContain("Working");
 		expect(getActiveGoal()?.text).toBe("Ship Milestone 1.1");
 
 		// Interactive /mode with no arguments selects via UI menu.
@@ -153,7 +160,8 @@ describe("Bisque vertical slice", () => {
 		await harness.session.prompt("/mode");
 		expect(getConfirmMode()).toBe("Read");
 		const readStatus = widgets.get(STATUS_WIDGET_KEY)?.content as string[];
-		expect(readStatus[0]).toContain("Confirm: Read  |  Context remaining:");
+		expect(readStatus[0]).toContain("Read");
+		expect(readStatus[0]).toContain("Context:");
 
 		await harness.session.prompt("/goal");
 		expect(widgets.get(GOAL_WIDGET_KEY)?.content).toBeUndefined();
@@ -209,11 +217,9 @@ describe("Bisque vertical slice", () => {
 		expect(postTurnSnap.fiveHourRemaining).toBe(100_000 - postTurnSnap.fiveHourUsed);
 
 		const statusLines = widgets.get(STATUS_WIDGET_KEY)?.content as string[];
-		expect(statusLines[0]).toContain("Confirm: Manual approve");
-		expect(statusLines[0]).toContain(
-			`Context remaining: ${(200_000 - postTurnSnap.fiveHourUsed).toLocaleString()} tokens`,
-		);
-		expect(statusLines[0]).toContain(`(${postTurnSnap.fiveHourRemaining.toLocaleString()} left)`);
+		expect(statusLines[0]).toContain("Manual approve");
+		expect(statusLines[0]).toContain("Context:");
+		expect(statusLines[0]).toContain("5h");
 
 		const baseNow = Date.now();
 		recordUsage(25_000, 0.05, baseNow + 1_000);
@@ -231,6 +237,7 @@ describe("Bisque vertical slice", () => {
 	});
 
 	it("runs vertical slice end-to-end and enforces pre-stop goal verification on premature stops", async () => {
+		// Regression test for https://github.com/BeenWithDaK/Bisque/issues/2
 		let allowConfirm = true;
 		const { harness, widgets, confirmCalls } = await setupBisque({
 			confirmImpl: async () => allowConfirm,
@@ -260,8 +267,8 @@ describe("Bisque vertical slice", () => {
 		expect(getAssistantTexts(harness)).toContain("Greeting created and goal verified.");
 
 		const goalLines = widgets.get(GOAL_WIDGET_KEY)?.content as string[];
-		expect(goalLines[0]).toBe("Goal: Create greeting.txt and verify (verified)");
-		expect(goalLines[1]).toBe("Verified: greeting.txt created with expected content");
+		expect(goalLines[0]).toContain("Working on: Create greeting.txt and verify");
+		expect(goalLines[1]).toContain("Verified: greeting.txt created with expected content");
 
 		const review = getPendingGoalReview();
 		expect(review?.verified).toBe(true);

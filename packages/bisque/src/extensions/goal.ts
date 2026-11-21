@@ -17,6 +17,7 @@ import type {
 	TurnEndEvent,
 } from "@earendil-works/pi-coding-agent";
 import { type Static, Type } from "typebox";
+import { ansi256, BISQUE_COLORS } from "../brand.ts";
 import { readJson, writeJson } from "../storage.ts";
 
 const GOAL_FILE = "active-goal.json";
@@ -58,11 +59,16 @@ export function getPendingGoalReview(): GoalReview | null {
 
 export function renderGoalBubble(current: GoalState | null = goal): string[] | undefined {
 	if (!current) return undefined;
-	const header = current.verified ? `Goal: ${current.text} (verified)` : `Goal: ${current.text}`;
-	const detail = current.verifiedSummary
-		? `Verified: ${current.verifiedSummary}`
-		: `Set ${new Date(current.setAt).toLocaleTimeString()}`;
-	return [header, detail];
+	const heading = current.verified ? `Working on: ${current.text}` : `Working on: ${current.text}`;
+	const detail = current.verified ? `Verified: ${current.verifiedSummary ?? "Complete"}` : "Working";
+	const width = Math.max(heading.length, detail.length) + 4;
+	const tomato = (text: string): string => ansi256(BISQUE_COLORS.tomato, text);
+	const sage = (text: string): string => ansi256(BISQUE_COLORS.sage, text);
+	return [
+		tomato(`╭─ ∿ ${heading}${"─".repeat(Math.max(0, width - heading.length - 5))} ╮`),
+		current.verified ? sage(`│ ${detail.padEnd(width - 2)} │`) : tomato(`│ ${detail.padEnd(width - 2)} │`),
+		tomato(`╰${"─".repeat(width)}╯`),
+	];
 }
 
 function refreshBubble(ctx: { ui: ExtensionUIContext }): void {
