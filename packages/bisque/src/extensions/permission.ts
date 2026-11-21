@@ -11,6 +11,7 @@ import {
 	type ToolCallEvent,
 	type ToolCallEventResult,
 } from "@earendil-works/pi-coding-agent";
+import { ansi256, BISQUE_COLORS } from "../brand.ts";
 import type { DecisionModel } from "../models/runner.ts";
 import { readJson, writeJson } from "../storage.ts";
 import { getActiveGoal } from "./goal.ts";
@@ -47,8 +48,18 @@ export function getDecisionModel(): DecisionModel | null {
 function applyMode(next: ConfirmMode, ctx: ExtensionContext): void {
 	mode = next;
 	writeJson(MODE_FILE, next);
-	ctx.ui.setStatus("confirm-mode", next);
+	ctx.ui.setStatus("confirm-mode", ansi256(confirmModeColor(next), next));
 	ctx.ui.notify(`Confirmation method: ${next}`, "info");
+}
+
+export function confirmModeColor(next: ConfirmMode): number {
+	if (next === "Read") return BISQUE_COLORS.sage;
+	if (next === "Manual approve") return BISQUE_COLORS.amber;
+	return BISQUE_COLORS.tomato;
+}
+
+function confirmTitle(toolName: string): string {
+	return ansi256(confirmModeColor(mode), `Allow ${toolName}?`);
 }
 
 export async function handleModeCommand(args: string, ctx: ExtensionCommandContext): Promise<void> {
@@ -92,7 +103,7 @@ export function permissionExtension(pi: ExtensionAPI): void {
 	pi.on("session_start", async (_event: SessionStartEvent, ctx: ExtensionContext): Promise<void> => {
 		const reloaded = readJson<unknown>(MODE_FILE, DEFAULT_MODE);
 		mode = isConfirmMode(reloaded) ? reloaded : DEFAULT_MODE;
-		ctx.ui.setStatus("confirm-mode", mode);
+		ctx.ui.setStatus("confirm-mode", ansi256(confirmModeColor(mode), mode));
 	});
 
 	pi.on("tool_call", async (event: ToolCallEvent, ctx: ExtensionContext): Promise<ToolCallEventResult | undefined> => {
@@ -106,7 +117,7 @@ export function permissionExtension(pi: ExtensionAPI): void {
 			if (!ctx.hasUI) {
 				return { block: true, reason: "Manual approve required but no UI available." };
 			}
-			const allowed = await ctx.ui.confirm(`Allow ${event.toolName}?`, describeToolCall(event));
+			const allowed = await ctx.ui.confirm(confirmTitle(event.toolName), describeToolCall(event));
 			if (!allowed) {
 				return { block: true, reason: "Blocked by user (manual approve)." };
 			}
@@ -127,7 +138,7 @@ export function permissionExtension(pi: ExtensionAPI): void {
 				}
 				if (ctx.hasUI) {
 					const allowed = await ctx.ui.confirm(
-						`Allow ${event.toolName}? (Auto-Confirm p=${decision.probability.toFixed(2)})`,
+						ansi256(BISQUE_COLORS.amber, `Allow ${event.toolName}? (Decision fallback)`),
 						describeToolCall(event),
 					);
 					if (allowed) return undefined;
@@ -142,7 +153,7 @@ export function permissionExtension(pi: ExtensionAPI): void {
 				return { block: true, reason: "Auto-Confirm not installed and no UI available." };
 			}
 			const allowed = await ctx.ui.confirm(
-				`Allow ${event.toolName}? (Auto-Confirm not installed)`,
+				ansi256(BISQUE_COLORS.amber, `Allow ${event.toolName}? (Auto-Confirm not installed)`),
 				describeToolCall(event),
 			);
 			if (!allowed) {

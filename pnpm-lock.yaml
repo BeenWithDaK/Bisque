@@ -232,6 +232,9 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../coding-agent
+      '@earendil-works/pi-tui':
+        specifier: workspace:*
+        version: link:../tui
       '@xenova/transformers':
         specifier: 2.17.1
         version: 2.17.1(bare-buffer@3.7.2)
@@ -242,6 +245,9 @@ importers:
       typescript:
         specifier: 7.0.2
         version: 7.0.2
+      vitest:
+        specifier: 4.1.12
+        version: 4.1.12(@types/node@22.19.19)(vite@8.3.8(@types/node@22.19.19)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/bisque-ssh:
     dependencies:
